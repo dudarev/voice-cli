@@ -1,0 +1,8 @@
+*.egg-info
+.DS_Store
+.pytest_cache
+.python-version
+__pycache__
+build
+out.diff
+settings.json
