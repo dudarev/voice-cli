@@ -118,7 +118,7 @@ def cli(
 ):
     directory = directory if directory else "."
 
-    start_dt = fromisoformat(start, end_of_date_for_date=True) if start else None
+    start_dt = fromisoformat(start) if start else None
     end_dt = fromisoformat(end, end_of_date_for_date=True) if end else None
 
     sound_files = []
