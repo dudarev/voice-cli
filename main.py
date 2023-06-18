@@ -4,7 +4,7 @@ A CLI tool to transcribe audio files in a directory.
 import io
 import json
 import hashlib
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -60,6 +60,22 @@ def is_between(
     return True
 
 
+def get_modified_time_utc(path: Path) -> datetime:
+    """
+    Returns the modified time of a file in timezone-aware format in UTC timezone.
+    """
+    timestamp = path.stat().st_mtime
+    dt = datetime.fromtimestamp(timestamp, tz=datetime.now().astimezone().tzinfo)
+    return dt.astimezone(timezone.utc)
+
+
+def get_utcnow_with_timezone() -> datetime:
+    """
+    Returns the current UTC datetime in timezone-aware format.
+    """
+    return datetime.utcnow().replace(tzinfo=timezone.utc)
+
+
 class Transcriber:
     model_name = MODEL_NAME
     _model = None
@@ -74,20 +90,46 @@ class Transcriber:
             self._model = whisper.load_model(self.model_name)
         return self._model
 
-    def transcribe(self, path: Path):
-        cache_path = CACHE_DIR / f"{generate_path_hash(path)}.json"
+    def get_cache_path(self, path) -> Path:
+        return CACHE_DIR / f"{generate_path_hash(path)}.json"
+
+    def get_cache(self, path: Path):
+        cache_path = self.get_cache_path(path)
         if cache_path.exists():
-            # check that cache is not older than the file
-            if cache_path.stat().st_mtime < path.stat().st_mtime:
+            cache_data = json.loads(cache_path.read_text())
+            if "transcribe_started_at_utc" not in cache_data:
                 cache_path.unlink()
+                return None
             else:
-                cache_data = json.loads(cache_path.read_text())
-                return cache_data["text"].strip()
+                transcribe_started_at_utc = fromisoformat(
+                    cache_data["transcribe_started_at_utc"]
+                )
+                modified_time_utc = get_modified_time_utc(path)
+                if transcribe_started_at_utc < modified_time_utc:
+                    cache_path.unlink()
+                    return None
+            cache_data = json.loads(cache_path.read_text())
+            return cache_data["text"].strip()
+        return None
 
-        result = self.model.transcribe(str(path), fp16=False)
-
-        with open(cache_path, "w") as f:
+    def save_cache(self, path: Path, result):
+        with open(self.get_cache_path(path), "w") as f:
             json.dump(result, f, indent=2)
+
+    def transcribe(self, path: Path):
+        echo(f"Transcribing {path}")
+
+        cache = self.get_cache(path)
+        if cache is not None:
+            return cache
+
+        transcribe_started_at_utc = get_utcnow_with_timezone()
+        result = self.model.transcribe(str(path), fp16=False)
+        result["transcribe_started_at_utc"] = transcribe_started_at_utc.isoformat()
+
+        self.save_cache(path, result)
+
+        echo(result["text"].strip())
 
         return result["text"].strip()
 

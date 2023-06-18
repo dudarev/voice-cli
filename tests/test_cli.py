@@ -31,8 +31,13 @@ def test_start(
 
 
 def test_model(
-    cli_runner: CliRunner, reverse_sorted_test_data_files: list[Path]
+    cli_runner: CliRunner,
+    reverse_sorted_test_data_files: list[Path],
+    tmp_path: Path,
+    output_file: Path,
 ) -> None:
-    result = cli_runner.invoke(cli, "-d tests/data --start 2023-01-01")
+    result = cli_runner.invoke(
+        cli, f"-d tests/data --start 2023-01-01 -o {output_file}"
+    )
     assert result.exit_code == 0
-    assert result.output == "## 2024-01-01 00:14:00\nTest 2\n\n\n"
+    assert "## 2024-01-01 00:14:00\nTest 2\n\n\n" == output_file.read_text()

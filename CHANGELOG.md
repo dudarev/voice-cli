@@ -17,6 +17,22 @@ Describe this diff:
 Summarize the diff:
 ```
 
+## [0.0.3] - 2023-06-18
+
+## Fixed
+
+- Remove outdated cache
+
+## Added
+
+- `get_modified_time_utc()` and `get_utcnow_with_timezone() functions
+- `get_cache()`, `save_cache()` and use cache for transcribing
+
+## Changed
+
+- Check cache data to see if file has been modified since transcription started
+- Use UTC datetimes for consistency
+
 ## [0.0.2] - 2023-06-06
 
 ### Added

@@ -27,3 +27,8 @@ def reverse_sorted_test_data_files() -> list[Path]:
 
     # file modified later comes first
     return path_1, path_0
+
+
+@pytest.fixture
+def output_file(tmp_path: Path) -> Path:
+    return tmp_path / "output.txt"
