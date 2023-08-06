@@ -6,17 +6,20 @@ import json
 import hashlib
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+import re
 from typing import Optional
 
 
 import click
 import whisper
+from dateutil.parser import parse, ParserError
 
 
 MODEL_NAME = "medium.en"
-SOUND_EXTENSIONS = (".mp3", ".wav", ".ogg", ".m4a", ".flac", "")
+SOUND_EXTENSIONS = (".mp3", ".wav", ".ogg", ".m4a", ".flac", "", ".webm")
 CACHE_DIR = Path.home() / ("cache/voice-cli/")
 TIMESTAMP_FORMAT = "## %Y-%m-%d %H:%M:%S"
+CACHE_DELTA_MINUTES = 5
 
 
 Path(CACHE_DIR).mkdir(exist_ok=True, parents=True)
@@ -105,7 +108,9 @@ class Transcriber:
                     cache_data["transcribe_started_at_utc"]
                 )
                 modified_time_utc = get_modified_time_utc(path)
-                if transcribe_started_at_utc < modified_time_utc:
+                if transcribe_started_at_utc < modified_time_utc + timedelta(
+                    minutes=CACHE_DELTA_MINUTES
+                ):
                     cache_path.unlink()
                     return None
             cache_data = json.loads(cache_path.read_text())
@@ -143,6 +148,33 @@ def echo(message: str, f_out: Optional[io.TextIOWrapper] = None):
         click.echo(message, f_out)
 
 
+def get_file_timestamp(path: Path) -> datetime:
+    """
+    Try to extract timestamp from file name.
+    If not found, use modified time of file.
+
+    Examples of file names:
+    Voice 1571_W_20230806_020851.mp3
+    20230804 214200.m4a
+    """
+    try:
+        elements = re.split(r"[_\.]", path.name)
+        timestamp_elements = [e for e in elements if len(e) >= 6 and e.isdigit()]
+        return parse(" ".join(timestamp_elements))
+    except ParserError:
+        pass
+
+    try:
+        # split on white space
+        elements = re.split(r"[\s\.]", path.name)
+        timestamp_elements = [e for e in elements if len(e) >= 6 and e.isdigit()]
+        return parse(" ".join(timestamp_elements))
+    except ParserError:
+        pass
+
+    return datetime.fromtimestamp(path.stat().st_mtime)
+
+
 @click.command()
 @click.option("-d", "--directory", help="Directory to iterate")
 @click.option("--start", help="Filter files since date in format YYYY-MM-DD[THH:MM:SS]")
@@ -169,16 +201,18 @@ def cli(
         if (
             path.is_file()
             and path.suffix.lower() in SOUND_EXTENSIONS
-            and is_between(
-                start_dt, end_dt, datetime.fromtimestamp(path.stat().st_mtime)
-            )
+            and is_between(start_dt, end_dt, get_file_timestamp(path))
             and not path.stem.startswith(".")
         ):
             sound_files.append(path)
 
     sorted_sound_files: list[Path] = sorted(
-        sound_files, key=lambda x: x.stat().st_mtime, reverse=True
+        sound_files, key=lambda x: get_file_timestamp(x), reverse=True
     )
+
+    echo("Files to transcribe:")
+    for f in sorted_sound_files:
+        echo(f"{f} ({get_file_timestamp(f).strftime('%Y-%m-%d %H:%M:%S')})")
 
     timestamp_texts = {}
     for f in sorted_sound_files:

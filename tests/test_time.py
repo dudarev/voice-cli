@@ -1,6 +1,9 @@
 from datetime import datetime
+from pathlib import Path
 
-from main import is_between, fromisoformat
+import pytest
+
+from main import is_between, fromisoformat, get_file_timestamp
 
 
 def test_fromisoformat():
@@ -30,3 +33,20 @@ def test_is_between():
     assert is_between(dt_2, dt_2, dt) == False
     assert is_between(dt_2, dt_1, dt) == False
     assert is_between(dt_2, dt_3, dt) == False
+
+
+@pytest.mark.parametrize(
+    "filename,expected",
+    [
+        pytest.param(
+            "Voice 1571_W_20230806_020851.m4a",
+            datetime(2023, 8, 6, 2, 8, 51),
+            id="Watch file",
+        ),
+        pytest.param(
+            "20230804 214200.m4a", datetime(2023, 8, 4, 21, 42, 0), id="Macbook file"
+        ),
+    ],
+)
+def test_get_file_timestamp(filename, expected):
+    assert get_file_timestamp(Path(f"tests/data/{filename}")) == expected

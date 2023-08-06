@@ -5,17 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## How-to
+See [Developement](docs/Development.md) for instructions on how to create a
+CHANGELOG entry with AI bots.
 
-Hint: Use `git diff > out.diff` to generate the diff and ask one of the LLM bots
-(ChatGPT, Bard, Claude-Instant, etc.) to describe it.
+## [0.0.4] - 2023-08-06
 
-Example prompts:
+### Added
 
-```
-Describe this diff:
-Summarize the diff:
-```
+- Added support for `.webm` sound file extension in `SOUND_EXTENSIONS`.
+- Added the `get_file_timestamp` function to extract timestamps from file names or use the modified time if not available.
+- Added and modified tests for the new functionalities.
+- `test` target in the `Makefile` to run tests with coverage and generate HTML and terminal reports.
+- `show-coverage` target in the `Makefile` to open the HTML coverage report in the browser.
+- Created a [TODO.md](docs/TODO.md) file to track pending tasks.
+- Added a [Development](docs/Development.md) file with instructions for creating a CHANGELOG entry with AI bots.
+
+### Changed
+
+- Updated the sorting of sound files based on their timestamps using `get_file_timestamp`.
 
 ## [0.0.3] - 2023-06-18
 
