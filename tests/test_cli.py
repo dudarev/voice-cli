@@ -54,3 +54,25 @@ def test_model(
     )
     assert result.exit_code == 0
     assert "## 2024-01-01 00:14:00\nTest 2\n\n\n" == output_file.read_text()
+def test_cli_with_existing_output_file(cli_runner: CliRunner, reverse_sorted_test_data_files: list[Path], tmp_path: Path) -> None:
+    output_file = tmp_path / "output.txt"
+    output_file.write_text("## 2022-01-01 00:16:00\nTest 1\n\n\n## 2024-01-01 00:14:00\nTest 2\n\n\n")
+    result = cli_runner.invoke(cli, f"-d {DATA_DIRECTORY} -o {output_file}")
+    assert result.exit_code == 0
+    assert output_file.read_text() == "## 2022-01-01 00:16:00\nTest 1\n\n\n## 2024-01-01 00:14:00\nTest 2\n\n\n"
+
+def test_cli_with_non_existing_output_file(cli_runner: CliRunner, reverse_sorted_test_data_files: list[Path], tmp_path: Path) -> None:
+    output_file = tmp_path / "output.txt"
+    result = cli_runner.invoke(cli, f"-d {DATA_DIRECTORY} -o {output_file}")
+    assert result.exit_code == 0
+    assert output_file.exists()
+    assert "## 2022-01-01 00:16:00\n" in output_file.read_text()
+    assert "## 2024-01-01 00:14:00\n" in output_file.read_text()
+
+def test_cli_with_existing_output_file_and_new_files(cli_runner: CliRunner, reverse_sorted_test_data_files: list[Path], tmp_path: Path) -> None:
+    output_file = tmp_path / "output.txt"
+    output_file.write_text("## 2022-01-01 00:16:00\nTest 1\n\n\n")
+    result = cli_runner.invoke(cli, f"-d {DATA_DIRECTORY} -o {output_file}")
+    assert result.exit_code == 0
+    assert "## 2022-01-01 00:16:00\nTest 1\n\n\n" in output_file.read_text()
+    assert "## 2024-01-01 00:14:00\n" in output_file.read_text()
