@@ -215,22 +215,38 @@ def cli(
         echo(f"{f} ({get_file_timestamp(f).strftime('%Y-%m-%d %H:%M:%S')})")
 
     timestamp_texts = {}
+    existing_timestamp_texts = {}
+    if output_file and Path(output_file).exists():
+        with open(output_file, "r") as f:
+            lines = f.readlines()
+        current_timestamp = None
+        for line in lines:
+            if line.startswith("## "):
+                current_timestamp = line.strip()
+                existing_timestamp_texts[current_timestamp] = []
+            elif current_timestamp:
+                existing_timestamp_texts[current_timestamp].append(line)
+
     for f in sorted_sound_files:
         t = f.stat().st_mtime
+        timestamp = datetime.fromtimestamp(t).strftime(TIMESTAMP_FORMAT)
         if dry_run:
-            echo(datetime.fromtimestamp(t).strftime(TIMESTAMP_FORMAT))
+            echo(timestamp)
             click.echo("\n")
             continue
-        result = transcriber.transcribe(f)
-        timestamp_texts[t] = result
+        if timestamp in existing_timestamp_texts:
+            result = "\n".join(existing_timestamp_texts[timestamp])
+        else:
+            result = transcriber.transcribe(f)
+        timestamp_texts[timestamp] = result
 
     if dry_run:
         return
 
     f_out = open(output_file, "w") if output_file else None
-    for t in timestamp_texts:
-        echo(datetime.fromtimestamp(t).strftime(TIMESTAMP_FORMAT), f_out)
-        echo(timestamp_texts[t], f_out)
+    for timestamp, text in timestamp_texts.items():
+        echo(timestamp, f_out)
+        echo(text, f_out)
         echo("\n", f_out)
     if f_out:
         f_out.close()
