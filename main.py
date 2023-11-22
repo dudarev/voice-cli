@@ -225,7 +225,7 @@ def cli(
                 current_timestamp = line.strip()
                 existing_timestamp_texts[current_timestamp] = []
             elif current_timestamp:
-                existing_timestamp_texts[current_timestamp].append(line)
+                existing_timestamp_texts[current_timestamp].append(line.strip())
 
     for f in sorted_sound_files:
         t = f.stat().st_mtime
@@ -235,7 +235,7 @@ def cli(
             click.echo("\n")
             continue
         if timestamp in existing_timestamp_texts:
-            result = "\n".join(existing_timestamp_texts[timestamp])
+            result = "\n".join(existing_timestamp_texts[timestamp]).strip()
         else:
             result = transcriber.transcribe(f)
         timestamp_texts[timestamp] = result
