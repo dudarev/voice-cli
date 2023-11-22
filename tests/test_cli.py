@@ -8,7 +8,7 @@ from conftest import DATA_DIRECTORY
 
 # TODO: replace this tests with more unit specific tests
 def test_dir(cli_runner: CliRunner, reverse_sorted_test_data_files: list[Path]) -> None:
-    result = cli_runner.invoke(cli, f"-d {DATA_DIRECTORY} --dry-run")
+    result = cli_runner.invoke(cli, f"-d ./tests/data --dry-run")
     assert result.exit_code == 0
     assert (
         result.output == "Files to transcribe:\n"
@@ -22,7 +22,7 @@ def test_dir(cli_runner: CliRunner, reverse_sorted_test_data_files: list[Path]) 
 def test_dir_single(
     cli_runner: CliRunner, reverse_sorted_test_data_files: list[Path]
 ) -> None:
-    result = cli_runner.invoke(cli, f"-d {DATA_DIRECTORY}/subfolder --dry-run")
+    result = cli_runner.invoke(cli, f"-d ./tests/data/subfolder --dry-run")
     assert result.exit_code == 0
     assert (
         result.output == "Files to transcribe:\n"
@@ -34,7 +34,7 @@ def test_dir_single(
 def test_start(
     cli_runner: CliRunner, reverse_sorted_test_data_files: list[Path]
 ) -> None:
-    result = cli_runner.invoke(cli, "-d tests/data --start 2023-01-01 --dry-run")
+    result = cli_runner.invoke(cli, "-d ./tests/data --start 2023-01-01 --dry-run")
     assert result.exit_code == 0
     assert (
         result.output == "Files to transcribe:\n"
