@@ -34,6 +34,13 @@ blocked_dirs: []
 docs: []
 
 # Sandbox executes commands in a sandboxed environment to validate code changes after every edit to guarantee pristine code. For more details, see the [Sandbox](./sandbox) page.
+"""
+This is the configuration file for Sweep AI. Sweep AI is a tool that automatically turns bugs and feature requests into code changes. 
+This file contains settings for rules that Sweep will check for, the branch that Sweep will develop from and make pull requests to, 
+whether to read the logs and outputs from existing Github Actions, the description of your project, whether to create pull requests as drafts, 
+a list of directories that Sweep will not be able to edit, a list of documentation links that Sweep will use to understand your code, 
+and commands to execute in a sandboxed environment to validate code changes after every edit.
+"""
 sandbox:
   install:
     - trunk init
