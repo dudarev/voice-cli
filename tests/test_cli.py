@@ -50,7 +50,7 @@ def test_model(
     output_file: Path,
 ) -> None:
     result = cli_runner.invoke(
-        cli, f"-d tests/data --start 2023-01-01 -o {output_file}"
+        cli, f"-d ./tests/data --start 2023-01-01 -o ./tests/data/{output_file}"
     )
     assert result.exit_code == 0
     assert "## 2024-01-01 00:14:00\nTest 2\n\n\n" == output_file.read_text()
@@ -74,8 +74,10 @@ def test_cli_with_existing_output_file(
 def test_cli_with_non_existing_output_file(
     cli_runner: CliRunner, reverse_sorted_test_data_files: list[Path], tmp_path: Path
 ) -> None:
-    output_file = tmp_path / "output.txt"
-    result = cli_runner.invoke(cli, f"-d {DATA_DIRECTORY} -o {output_file}")
+    output_file = "./tests/data/output.txt"
+    result = cli_runner.invoke(cli, f"-d ./tests/data -o {output_file}")
+    output_file = "./tests/data/output.txt"
+    result = cli_runner.invoke(cli, f"-d ./tests/data -o {output_file}")
     assert result.exit_code == 0
     assert output_file.exists()
     assert "## 2022-01-01 00:16:00\n" in output_file.read_text()
