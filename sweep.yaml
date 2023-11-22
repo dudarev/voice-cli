@@ -1,3 +1,13 @@
+"""
+This is the configuration file for Sweep AI, a tool that turns bugs and feature requests into code changes. 
+For more details on the configuration settings, refer to the documentation at https://docs.sweep.dev/usage/config.
+
+The file contains settings for rules that Sweep will check for, the branch that Sweep will develop from and make pull requests to, 
+whether Sweep should read the logs and outputs from your existing Github Actions, a description of your project, 
+whether to create pull requests as drafts, a list of directories that Sweep will not be able to edit, 
+a list of documentation links that Sweep will use to help it understand your code, and commands for a sandboxed environment 
+to validate code changes after every edit.
+"""
 # Sweep AI turns bugs & feature requests into code changes (https://sweep.dev)
 # For details on our config file, check out our docs at https://docs.sweep.dev/usage/config
 
