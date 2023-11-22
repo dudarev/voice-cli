@@ -217,8 +217,7 @@ def cli(
     timestamp_texts = {}
     existing_timestamp_texts = {}
     if output_file and Path(output_file).exists():
-        with open(output_file, "r") as f:
-            lines = f.readlines()
+        lines = Path(output_file).read_text().splitlines()
         current_timestamp = None
         for line in lines:
             if line.startswith("## "):
