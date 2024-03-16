@@ -121,12 +121,13 @@ class Transcriber:
         with open(self.get_cache_path(path), "w") as f:
             json.dump(result, f, indent=2)
 
-    def transcribe(self, path: Path):
-        echo(f"Transcribing {path}")
+    def transcribe(self, path: Path, force: bool = False):
+        echo(f"Transcribing {path} with {force=}")
 
-        cache = self.get_cache(path)
-        if cache is not None:
-            return cache
+        if not force:
+            cache = self.get_cache(path)
+            if cache is not None:
+                return cache
 
         transcribe_started_at_utc = get_utcnow_with_timezone()
         result = self.model.transcribe(str(path), fp16=False)
@@ -183,12 +184,14 @@ def get_file_timestamp(path: Path) -> datetime:
 @click.option(
     "--dry-run", help="Run in dry-run mode without transcribing", is_flag=True
 )
+@click.option("--force", help="Force transcribe even if cache exists", is_flag=True)
 def cli(
     directory: Optional[str] = None,
     start: Optional[str] = None,
     end: Optional[str] = None,
     output_file: Optional[click.Path] = None,
     dry_run: bool = False,
+    force: bool = False,
 ):
     directory = directory if directory else "."
 
@@ -210,6 +213,7 @@ def cli(
         sound_files, key=lambda x: get_file_timestamp(x), reverse=True
     )
 
+    echo(f"Using model {transcriber.model_name}")
     echo("Files to transcribe:")
     for f in sorted_sound_files:
         echo(f"{f} ({get_file_timestamp(f).strftime('%Y-%m-%d %H:%M:%S')})")
@@ -227,16 +231,15 @@ def cli(
                 existing_timestamp_texts[current_timestamp].append(line.strip())
 
     for f in sorted_sound_files:
-        t = f.stat().st_mtime
-        timestamp = datetime.fromtimestamp(t).strftime(TIMESTAMP_FORMAT)
+        timestamp = get_file_timestamp(f).strftime(TIMESTAMP_FORMAT)
         if dry_run:
             echo(timestamp)
             click.echo("\n")
             continue
-        if timestamp in existing_timestamp_texts:
+        if timestamp in existing_timestamp_texts and not force:
             result = "\n".join(existing_timestamp_texts[timestamp]).strip()
         else:
-            result = transcriber.transcribe(f)
+            result = transcriber.transcribe(f, force=force)
         timestamp_texts[timestamp] = result
 
     if dry_run:

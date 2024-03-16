@@ -6,4 +6,5 @@
 __pycache__
 build
 out.diff
+scratch
 settings.json
