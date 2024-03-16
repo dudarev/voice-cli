@@ -3,7 +3,7 @@
 Get git diff with:
 
 ```sh
-git diff master | pbcopy
+git diff main | pbcopy
 ```
 
 Prompt:
