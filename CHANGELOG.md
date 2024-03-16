@@ -8,6 +8,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 See [Developement](docs/Development.md) for instructions on how to create a
 CHANGELOG entry with AI bots.
 
+## [0.0.5] - 2024-03-16
+
+### Added
+
+- Added a `--force` option to the CLI to force transcribing files even if a cache exists.
+
+### Changed
+
+- Existing text in the output file does not change with new transcription
+- Updated the README with information about the new `--force` option.
+- Updated the `Development.md` doc to use `main` instead of `master` for the git diff command.
+- Updated the `PLAN.md` doc with additional notes and plans.
+- Bumped the version in `setup.py` from `0.0.2` to `0.0.5`.
+- Added `scratch` to the `.gitignore` file.
+
+### Tests
+
+- Added new tests in `tests/test_cli.py` to cover various scenarios with the output file and the `--force` option.
+
 ## [0.0.4] - 2023-08-06
 
 ### Added
