@@ -6,7 +6,7 @@ with open("requirements.txt") as f:
 
 setup(
     name="voice-cli",
-    version="0.0.2",
+    version="0.0.5",
     py_modules=["main"],
     install_requires=requirements,
     entry_points={

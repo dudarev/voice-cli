@@ -13,6 +13,7 @@ Options:
                           DD[THH:MM:SS]
   -o, --output-file TEXT  Output file to write to
   --dry-run               Run in dry-run mode without transcribing
+  --force                 Force transcribe even if cache exists
   --help                  Show this message and exit.
 ```
 

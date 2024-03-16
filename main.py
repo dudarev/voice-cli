@@ -121,12 +121,13 @@ class Transcriber:
         with open(self.get_cache_path(path), "w") as f:
             json.dump(result, f, indent=2)
 
-    def transcribe(self, path: Path):
-        echo(f"Transcribing {path}")
+    def transcribe(self, path: Path, force: bool = False):
+        echo(f"Transcribing {path} with {force=}")
 
-        cache = self.get_cache(path)
-        if cache is not None:
-            return cache
+        if not force:
+            cache = self.get_cache(path)
+            if cache is not None:
+                return cache
 
         transcribe_started_at_utc = get_utcnow_with_timezone()
         result = self.model.transcribe(str(path), fp16=False)
@@ -183,12 +184,14 @@ def get_file_timestamp(path: Path) -> datetime:
 @click.option(
     "--dry-run", help="Run in dry-run mode without transcribing", is_flag=True
 )
+@click.option("--force", help="Force transcribe even if cache exists", is_flag=True)
 def cli(
     directory: Optional[str] = None,
     start: Optional[str] = None,
     end: Optional[str] = None,
     output_file: Optional[click.Path] = None,
     dry_run: bool = False,
+    force: bool = False,
 ):
     directory = directory if directory else "."
 
@@ -210,27 +213,42 @@ def cli(
         sound_files, key=lambda x: get_file_timestamp(x), reverse=True
     )
 
+    echo(f"Using model {transcriber.model_name}")
     echo("Files to transcribe:")
     for f in sorted_sound_files:
         echo(f"{f} ({get_file_timestamp(f).strftime('%Y-%m-%d %H:%M:%S')})")
 
     timestamp_texts = {}
+    existing_timestamp_texts = {}
+    if output_file and Path(output_file).exists():
+        lines = Path(output_file).read_text().splitlines()
+        current_timestamp = None
+        for line in lines:
+            if line.startswith("## "):
+                current_timestamp = line.strip()
+                existing_timestamp_texts[current_timestamp] = []
+            elif current_timestamp:
+                existing_timestamp_texts[current_timestamp].append(line.strip())
+
     for f in sorted_sound_files:
-        t = f.stat().st_mtime
+        timestamp = get_file_timestamp(f).strftime(TIMESTAMP_FORMAT)
         if dry_run:
-            echo(datetime.fromtimestamp(t).strftime(TIMESTAMP_FORMAT))
+            echo(timestamp)
             click.echo("\n")
             continue
-        result = transcriber.transcribe(f)
-        timestamp_texts[t] = result
+        if timestamp in existing_timestamp_texts and not force:
+            result = "\n".join(existing_timestamp_texts[timestamp]).strip()
+        else:
+            result = transcriber.transcribe(f, force=force)
+        timestamp_texts[timestamp] = result
 
     if dry_run:
         return
 
     f_out = open(output_file, "w") if output_file else None
-    for t in timestamp_texts:
-        echo(datetime.fromtimestamp(t).strftime(TIMESTAMP_FORMAT), f_out)
-        echo(timestamp_texts[t], f_out)
+    for timestamp, text in timestamp_texts.items():
+        echo(timestamp, f_out)
+        echo(text, f_out)
         echo("\n", f_out)
     if f_out:
         f_out.close()
