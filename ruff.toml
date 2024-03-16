@@ -1,9 +1,0 @@
-[settings]
-line_length = 120
-indent_style = "spaces"
-indent_size = 4
-docstring_line_length = 72
-string_quote_style = "double"
-docstring_quote_style = "double"
-trailing_comma = true
-sort_imports = true
